@@ -1,23 +1,17 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import NumberPad from "./numpad";
 
 function App() {
+  const [displayedNumbers, setDisplayedNumbers] = useState("");
+
+  const handleNumberClick = (number) => {
+    setDisplayedNumbers(number);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container mx-auto mt-8">
+      {/*<div className="mt-4">{displayedNumbers}</div>*/}
+      <NumberPad onNumberClick={handleNumberClick} />
     </div>
   );
 }
