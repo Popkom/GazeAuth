@@ -1,13 +1,53 @@
 import React, { useState, useEffect } from "react";
 
 const NumberPad = ({ onNumberClick }) => {
+  const [gazePoint, setGazePoint] = useState(null);
+  const [time, setTime] = useState(0);
+  const webgazer = window.webgazer;
+  const [counter, setCounter] = useState(0);
+  const [lastElapsed, setLastElapsed] = useState(0);
+
+  useEffect(() => {
+    if (gazePoint == null) {
+      return;
+    } else {
+      setCounter(counter + 1);
+    }
+  }, [gazePoint]);
+
+  useEffect(() => {
+    console.log(time);
+  }, [time]);
+
+  useEffect(() => {
+    webgazer.begin();
+    webgazer.showVideo(false);
+
+    const gazeListener = (data, elapsedTime) => {
+      if (data == null) {
+        setGazePoint(null);
+        setTime(0);
+        setLastElapsed(elapsedTime);
+        console.log("last elapsed" + lastElapsed);
+        return;
+      }
+      setGazePoint({ x: data.x, y: data.y });
+      setTime(elapsedTime - lastElapsed);
+    };
+
+    webgazer.setGazeListener(gazeListener);
+    return () => {
+      webgazer.clearGazeListener();
+    };
+  }, []);
+
   const [inputNumbers, setInputNumbers] = useState("");
   const [message, setMessage] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [locked, setLocked] = useState(false);
 
   const handleNumberClick = (number) => {
-    if (!locked) {
+    if (!locked && gazePoint != null) {
       if (inputNumbers.length < 4) {
         setInputNumbers(inputNumbers + number);
         onNumberClick(inputNumbers + number);
@@ -58,8 +98,16 @@ const NumberPad = ({ onNumberClick }) => {
     if (!locked) {
       const pass = "1563";
       if (inputNumbers === pass) {
-        setMessage("Access Granted");
-        setAttempts(0);
+        if (counter >= 5) {
+          setMessage("Access Granted");
+          setAttempts(0);
+          setCounter(0);
+        } else {
+          setMessage(
+            "Access Denied - Try Again, You Must Have A 5 Second Gaze"
+          );
+          setAttempts(attempts + 1);
+        }
       } else if (attempts === 0) {
         setMessage("Access Denied - Try Again");
         setAttempts(attempts + 1);
@@ -88,6 +136,22 @@ const NumberPad = ({ onNumberClick }) => {
         }
       >
         {message}
+      </div>
+      <div>
+        <img
+          src="/unlock.png"
+          className={
+            "h-10 w-10 transition-all duration-200 " +
+            (gazePoint == null ? "hidden" : "")
+          }
+        />
+        <img
+          src="/lock.png"
+          className={
+            "h-10 w-10 transition-all duration-200 " +
+            (gazePoint != null ? "hidden" : "")
+          }
+        />
       </div>
       <div className="mb-8 flex justify-evenly w-3/4">
         {[...Array(4)].map((_, index) => (
