@@ -4,20 +4,6 @@ const NumberPad = ({ onNumberClick }) => {
   const [gazePoint, setGazePoint] = useState(null);
   const [time, setTime] = useState(0);
   const webgazer = window.webgazer;
-  const [counter, setCounter] = useState(0);
-  const [lastElapsed, setLastElapsed] = useState(0);
-
-  useEffect(() => {
-    if (gazePoint == null) {
-      return;
-    } else {
-      setCounter(counter + 1);
-    }
-  }, [gazePoint]);
-
-  useEffect(() => {
-    console.log(time);
-  }, [time]);
 
   useEffect(() => {
     webgazer.begin();
@@ -27,12 +13,10 @@ const NumberPad = ({ onNumberClick }) => {
       if (data == null) {
         setGazePoint(null);
         setTime(0);
-        setLastElapsed(elapsedTime);
-        console.log("last elapsed" + lastElapsed);
         return;
       }
       setGazePoint({ x: data.x, y: data.y });
-      setTime(elapsedTime - lastElapsed);
+      setTime(elapsedTime);
     };
 
     webgazer.setGazeListener(gazeListener);
@@ -71,24 +55,30 @@ const NumberPad = ({ onNumberClick }) => {
 
   useEffect(() => {
     let timer;
-    if (attempts === 1) {
+    if (time < 10000) {
+      timer = setTimeout(() => {
+        setMessage("");
+        setLocked(false);
+        console.log("time");
+      }, 5000);
+    } else if (attempts === 1) {
       timer = setTimeout(() => {
         setMessage("");
         setLocked(false);
         console.log("first");
-      }, 3000);
+      }, 5000);
     } else if (attempts === 2) {
       timer = setTimeout(() => {
         setMessage("");
         setLocked(false);
         console.log("second");
-      }, 4000);
-    } else if (attempts > 2) {
+      }, 30000);
+    } else if (attempts === 3) {
       timer = setTimeout(() => {
         setMessage("");
         setLocked(false);
         console.log("third");
-      }, 5000);
+      }, 60000);
     }
     return () => clearTimeout(timer);
   }, [attempts, locked, setLocked]);
@@ -98,13 +88,12 @@ const NumberPad = ({ onNumberClick }) => {
     if (!locked) {
       const pass = "1563";
       if (inputNumbers === pass) {
-        if (counter >= 5) {
+        if (time >= 10000) {
           setMessage("Access Granted");
           setAttempts(0);
-          setCounter(0);
         } else {
           setMessage(
-            "Access Denied - Try Again, You Must Have A 5 Second Gaze"
+            "Access Denied - Try Again, You Must Have A 10 Second Gaze"
           );
           setAttempts(attempts + 1);
         }
@@ -142,14 +131,14 @@ const NumberPad = ({ onNumberClick }) => {
           src="/unlock.png"
           className={
             "h-10 w-10 transition-all duration-200 " +
-            (gazePoint == null ? "hidden" : "")
+            (gazePoint == null || locked == true ? "hidden" : "")
           }
         />
         <img
           src="/lock.png"
           className={
             "h-10 w-10 transition-all duration-200 " +
-            (gazePoint != null ? "hidden" : "")
+            (gazePoint != null && locked == false ? "hidden" : "")
           }
         />
       </div>
